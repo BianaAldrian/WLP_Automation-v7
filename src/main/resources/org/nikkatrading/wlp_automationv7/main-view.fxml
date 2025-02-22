@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" spacing="10.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.nikkatrading.wlp_automationv7.MainController">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+    </padding>
+    <HBox>
+        <ImageView fitHeight="44.0" fitWidth="101.0">
+            <Image url="@res/nikka_logo.png" />
+        </ImageView>
+        <VBox alignment="CENTER_LEFT">
+            <HBox.margin>
+                <Insets left="10.0" />
+            </HBox.margin>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="NIKKA TRADING">
+                <font>
+                    <Font name="Arial Bold" size="24.0" />
+                </font>
+            </Text>
+            <Text layoutX="10.0" layoutY="23.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Work Load Plan Automation">
+                <font>
+                    <Font size="14.0" />
+                </font>
+            </Text>
+        </VBox>
+        <Pane HBox.hgrow="ALWAYS" />
+        <ImageView fx:id="refresh" fitHeight="30.0" fitWidth="30.0">
+            <Image url="@res/refresh.png" />
+            <cursor>
+                <Cursor fx:constant="HAND" />
+            </cursor>
+        </ImageView>
+        <ImageView fx:id="file_setup" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@res/file_setup.png" />
+            <cursor>
+                <Cursor fx:constant="HAND" />
+            </cursor>
+            <HBox.margin>
+                <Insets left="20.0" />
+            </HBox.margin>
+        </ImageView>
+    </HBox>
+    <HBox alignment="CENTER_LEFT">
+        <ImageView fx:id="lots_setup" fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
+            <HBox.margin>
+                <Insets left="10.0" />
+            </HBox.margin>
+            <cursor>
+                <Cursor fx:constant="HAND" />
+            </cursor>
+            <Image url="@res/set.png" />
+        </ImageView>
+        <Text fx:id="lotsDisp" strokeType="OUTSIDE" strokeWidth="0.0" text="No Lot Selected">
+            <font>
+                <Font name="Arial Bold" size="18.0" />
+            </font>
+            <HBox.margin>
+                <Insets left="10.0" />
+            </HBox.margin>
+        </Text>
+    </HBox>
+    <HBox alignment="CENTER_LEFT">
+        <VBox.margin>
+            <Insets left="10.0" />
+        </VBox.margin>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Search:">
+            <font>
+                <Font name="Arial Bold" size="16.0" />
+            </font>
+        </Text>
+        <TextField fx:id="inp_schoolID" minWidth="100.0" prefHeight="20.0" prefWidth="130.0" promptText="School ID">
+            <HBox.margin>
+                <Insets left="5.0" />
+            </HBox.margin>
+            <font>
+                <Font size="16.0" />
+            </font>
+        </TextField>
+        <Text layoutX="10.0" layoutY="42.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Region:">
+            <font>
+                <Font name="Arial Bold" size="16.0" />
+            </font>
+            <HBox.margin>
+                <Insets left="30.0" />
+            </HBox.margin>
+        </Text>
+        <ChoiceBox fx:id="cb_region" prefHeight="30.0" prefWidth="120.0">
+            <HBox.margin>
+                <Insets left="5.0" />
+            </HBox.margin>
+        </ChoiceBox>
+        <Text layoutX="290.0" layoutY="42.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Division:">
+            <font>
+                <Font name="Arial Bold" size="16.0" />
+            </font>
+            <HBox.margin>
+                <Insets left="30.0" />
+            </HBox.margin>
+        </Text>
+        <ChoiceBox fx:id="cb_division" layoutX="370.0" layoutY="15.0" prefHeight="30.0" prefWidth="150.0">
+            <HBox.margin>
+                <Insets left="5.0" />
+            </HBox.margin>
+        </ChoiceBox>
+        <Pane prefHeight="2.0" prefWidth="346.0" HBox.hgrow="ALWAYS" />
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Prev. Batch No.">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font>
+        </Text>
+        <TextField fx:id="inp_batchNumber" layoutX="74.0" layoutY="20.0" prefHeight="20.0" prefWidth="130.0">
+            <font>
+                <Font size="15.0" />
+            </font>
+            <HBox.margin>
+                <Insets left="5.0" />
+            </HBox.margin>
+        </TextField>
+    </HBox>
+    <HBox alignment="CENTER_LEFT">
+        <VBox.margin>
+            <Insets left="20.0" />
+        </VBox.margin>
+        <CheckBox fx:id="cb_autoCheck" mnemonicParsing="false" text="Auto Check Searched IDs:">
+            <font>
+                <Font name="Arial" size="12.0" />
+            </font>
+        </CheckBox>
+        <!--<HBox alignment="CENTER">
+            <HBox.margin>
+                <Insets left="30.0" />
+            </HBox.margin>
+            <ImageView fitHeight="20.0" fitWidth="20.0">
+                <Image url="@res/info.png" />
+            </ImageView>
+            <Text fx:id="info_searchSuccess" fill="GREEN" strokeType="OUTSIDE" strokeWidth="0.0" text="Search Successful!" textAlignment="CENTER">
+                <HBox.margin>
+                    <Insets left="5.0" />
+                </HBox.margin>
+                <font>
+                    <Font name="Arial" size="12.0" />
+                </font>
+            </Text>
+        </HBox>
+        <HBox alignment="CENTER" layoutX="203.0" layoutY="10.0">
+            <HBox.margin>
+                <Insets left="30.0" />
+            </HBox.margin>
+            <ImageView fitHeight="20.0" fitWidth="20.0">
+                <Image url="@res/info.png" />
+            </ImageView>
+            <Text fx:id="info_notFound" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="ID not found: (schoolID)" textAlignment="CENTER">
+                <HBox.margin>
+                    <Insets left="5.0" />
+                </HBox.margin>
+                <font>
+                    <Font name="Arial" size="12.0" />
+                </font>
+            </Text>
+        </HBox>-->
+    </HBox>
+
+    <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+        <SplitPane dividerPositions="0.6767100977198697" layoutX="403.0" layoutY="46.0" prefHeight="500.0" style="-fx-border-color: none;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="385.0" prefWidth="607.0">
+                <Label layoutX="304.0" layoutY="6.0" text="School List" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0" />
+                <TableView fx:id="sclList_table" layoutX="20.0" layoutY="17.0" prefHeight="200.0" prefWidth="1009.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="selectSchool" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
+                            <graphic>
+                                <StackPane>
+                                    <ImageView fx:id="schoolListTable_checkAll" fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
+                                        <Image url="@res/check-all.png" />
+                                        <cursor>
+                                            <Cursor fx:constant="HAND" />
+                                        </cursor>
+                                    </ImageView>
+                                </StackPane>
+                            </graphic>
+                        </TableColumn>
+                        <TableColumn fx:id="schoolListTable_region" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
+                        <TableColumn fx:id="schoolListTable_division" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
+                        <TableColumn fx:id="schoolListTable_schoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="65.0" sortable="false" text="School ID" />
+                        <TableColumn fx:id="schoolListTable_schoolName" editable="false" minWidth="100.0" prefWidth="181.0" sortable="false" text="School Name" />
+                        <TableColumn fx:id="schoolListTable_gradeLvl" editable="false" maxWidth="156.0" minWidth="90.0" prefWidth="106.0" sortable="false" text="Grade Lvl." />
+                        <TableColumn fx:id="schoolListTable_cbm" editable="false" maxWidth="83.0" minWidth="60.0" prefWidth="79.0" sortable="false" text="CBM" />
+                    </columns>
+                </TableView>
+            </AnchorPane>
+
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="385.0" prefWidth="607.0">
+                <Label layoutX="304.0" layoutY="6.0" text="Selected School List" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0" />
+                <TableView fx:id="slctdTableView" prefHeight="200.0" prefWidth="424.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="slctdSelectColumn" editable="false" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
+                            <graphic>
+                                <StackPane>
+                                    <ImageView fx:id="schoolListTable_deleteAll" fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
+                                        <Image url="@res/trash.png" />
+                                        <cursor>
+                                            <Cursor fx:constant="HAND" />
+                                        </cursor>
+                                    </ImageView>
+                                </StackPane>
+                            </graphic>
+                        </TableColumn>
+                        <TableColumn fx:id="itemNo" editable="false" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" sortable="false" text="No." />
+                        <TableColumn fx:id="slctdRegion" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
+                        <TableColumn fx:id="slctdDivision" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
+                        <TableColumn fx:id="slctdSchoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="61.0" sortable="false" text="School ID" />
+                        <TableColumn fx:id="slctdSchoolName" editable="false" minWidth="100.0" prefWidth="219.0" sortable="false" text="School Name" />
+                        <TableColumn fx:id="slctdGradeLvl" editable="false" maxWidth="150.0" minWidth="90.0" prefWidth="120.0" sortable="false" text="Grade Lvl." />
+                        <TableColumn fx:id="slctdCbm" editable="false" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" sortable="false" text="CBM" />
+                    </columns>
+                </TableView>
+            </AnchorPane>
+
+        </SplitPane>
+    </AnchorPane>
+    <HBox alignment="CENTER_LEFT" prefHeight="50.0">
+        <HBox alignment="CENTER">
+            <HBox.margin>
+                <Insets left="20.0" />
+            </HBox.margin>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Total Volume:">
+                <font>
+                    <Font name="Arial Bold" size="16.0" />
+                </font>
+            </Text>
+            <TextField fx:id="total_volume" alignment="CENTER" editable="false" maxWidth="150.0" prefWidth="150.0" promptText="0">
+                <font>
+                    <Font name="Arial" size="20.0" />
+                </font>
+                <HBox.margin>
+                    <Insets left="10.0" />
+                </HBox.margin>
+            </TextField>
+        </HBox>
+        <Pane HBox.hgrow="ALWAYS" />
+        <CheckBox fx:id="showMB" mnemonicParsing="false" text="Show MotherBox Details">
+            <font>
+                <Font name="Arial Bold" size="15.0" />
+            </font>
+            <HBox.margin>
+                <Insets right="80.0" />
+            </HBox.margin>
+        </CheckBox>
+        <Button fx:id="generate" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" text="Generate">
+            <font>
+                <Font name="Arial Bold" size="18.0" />
+            </font>
+            <HBox.margin>
+                <Insets right="40.0" />
+            </HBox.margin>
+        </Button>
+        <VBox.margin>
+            <Insets />
+        </VBox.margin>
+    </HBox>
+    <HBox alignment="CENTER_RIGHT">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Version">
+            <font>
+                <Font name="Arial Italic" size="12.0" />
+            </font>
+        </Text>
+    </HBox>
+
+</VBox>
