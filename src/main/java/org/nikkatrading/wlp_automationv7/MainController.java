@@ -349,16 +349,20 @@ public class MainController {
                      double cbm = getTotalCBM(selectedLot, schoolModel, nullDeliveredLots, nullGeneratedLots);
                      
                      // Add the cbm before the transfer of the data
-                     schoolModel.addCbm(cbm);
-                     tableDataList.add(schoolModel);
+                     if (cbm != 0) {
+                        schoolModel.addCbm(cbm);
+                        tableDataList.add(schoolModel);
+                     }
                   }
                } else {
                   // Get the total cbm
                   double cbm = getTotalCBM(selectedLot, schoolModel, nullDeliveredLots, null);
-                  
+
                   // Add the cbm before the transfer of the data
-                  schoolModel.addCbm(cbm);
-                  tableDataList.add(schoolModel);
+                  if (cbm != 0) {
+                     schoolModel.addCbm(cbm);
+                     tableDataList.add(schoolModel);
+                  }
                }
             }
          } else {
@@ -373,18 +377,22 @@ public class MainController {
                if (!nullGeneratedLots.isEmpty()) {
                   // Get the total cbm
                   double cbm = getTotalCBM(selectedLot, schoolModel, null, nullGeneratedLots);
-                  
+
                   // Add the cbm before the transfer of the data
-                  schoolModel.addCbm(cbm);
-                  tableDataList.add(schoolModel);
+                  if (cbm != 0) {
+                     schoolModel.addCbm(cbm);
+                     tableDataList.add(schoolModel);
+                  }
                }
             } else {
                // Get the total cbm
                double cbm = getTotalCBM(selectedLot, schoolModel, null, null);
-               
+
                // Add the cbm before the transfer of the data
-               schoolModel.addCbm(cbm);
-               tableDataList.add(schoolModel);
+               if (cbm != 0) {
+                  schoolModel.addCbm(cbm);
+                  tableDataList.add(schoolModel);
+               }
             }
          }
       }
