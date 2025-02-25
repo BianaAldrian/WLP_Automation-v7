@@ -5,7 +5,6 @@ public class SchoolLot_Model {
    private int setPerItem;
    private double cbm;
    
-   
    public SchoolLot_Model(String lotName, int setPerItem, double cbm) {
       this.lotName = lotName;
       this.setPerItem = setPerItem;

@@ -55,19 +55,16 @@ public class MainController {
    @FXML private TableColumn<SchoolList_TableModel, Double> schoolListTable_cbm;
    
    /** Below is the data types **/
-   
    // Store the sorted Lots from lowest to highest
    private String[] sortedLotsArray; // Store sorted lots for reuse
    
    private List<SchoolList_TableModel> tableDataList = new ArrayList<>(); // Store the sorted data for the table
    
-   private List<SPIGradeLevel> spiGradeLevelList; // Store the Set Per Item data
    private List<CBMGradeLevel> cbmGradeLevelList; // Store the CBM data
    
    private List<SchoolList_TableModel> schoolList; // Store the school data
    private List<DeliveredSchoolModel> deliveredSchoolList; // Store the delivered school data
    private List<GeneratedSchoolModel> generatedSchoolList; // Store the generated school data
-   
    /** End of data types **/
    
    
@@ -157,7 +154,8 @@ public class MainController {
    
    /// This method is to gather necessary data.
    private void gatherSchoolData() {
-      spiGradeLevelList = new ReadSPI().spiGradeLevelList;
+      // Store the Set Per Item data
+      List<SPIGradeLevel> spiGradeLevelList = new ReadSPI().spiGradeLevelList;
       cbmGradeLevelList = new ReadCBM().cbmGradeLevelList;
       
       // Collect lots from the database
@@ -180,7 +178,7 @@ public class MainController {
       tableDataList = schoolList;
       
       /// Testing for school Allocation*/
-      /*for (SchoolList_TableModel schoolModel : schoolList) {
+      for (SchoolList_TableModel schoolModel : schoolList) {
          System.out.println("- " + schoolModel.getRegion() + " > " + schoolModel.getDivision() +
                  " > [" + schoolModel.getSchoolID() + "] " + schoolModel.getSchoolName());
          
@@ -194,8 +192,7 @@ public class MainController {
             }
          }
          System.out.println(); // Add spacing for better readability between schools
-      }*/
-      
+      }
       
       /// Test for Delivered School
       /*for (DeliveredSchoolModel deliveredSchoolModel : deliveredSchoolList) {
@@ -251,7 +248,6 @@ public class MainController {
          System.out.println(); // Add spacing for better readability
       }*/
       
-      
       /// Test for CBM
       /*for (CBMGradeLevel cbmGradeLevel : cbmGradeLevelList) {
          System.out.println("Grade Level: " + cbmGradeLevel.getGradeLevel());
@@ -262,8 +258,7 @@ public class MainController {
          }
          
          System.out.println(); // Add space for better separation between grade levels
-      }
-      */
+      }*/
    }
    
    /// Method to display the allocation in the table
@@ -307,8 +302,8 @@ public class MainController {
       schoolListTable_schoolID.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getSchoolID()).asObject());
       schoolListTable_schoolName.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getSchoolName()));
       schoolListTable_gradeLvl.setCellValueFactory(cellData -> new SimpleStringProperty(String.join(", ", cellData.getValue().getGradeLevels())));
-//      schoolListTable_cbm.setCellValueFactory(cellData -> new SimpleDoubleProperty(Math.round(cellData.getValue().getCbm() * 100.0) / 100.0).asObject());
-      schoolListTable_cbm.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getCbm()).asObject());
+      schoolListTable_cbm.setCellValueFactory(cellData -> new SimpleDoubleProperty(Math.round(cellData.getValue().getCbm() * 100.0) / 100.0).asObject());
+//      schoolListTable_cbm.setCellValueFactory(cellData -> new SimpleDoubleProperty(cellData.getValue().getCbm()).asObject());
    }
    
    
@@ -327,7 +322,7 @@ public class MainController {
       Map<Integer, GeneratedSchoolModel> generatedMap = generatedSchoolList.stream()
               .collect(Collectors.toMap(GeneratedSchoolModel::getSchoolId, g -> g));
       
-      // Loop through the school list and filter based on the selected lot criteria
+      // Loop through the school list and filter based on th   e selected lot criteria
       for (SchoolList_TableModel schoolModel : schoolList) {
          int schoolId = schoolModel.getSchoolID();
          // Reset CBM before adding a new value
@@ -339,12 +334,6 @@ public class MainController {
             
             // Determine if the school has a valid delivered lot
             List<String> nullDeliveredLots = getDeliveredLotsWithNullValues(selectedLot, delivered);
-            /*if (!nullDeliveredLots.isEmpty()) {
-               System.out.println(schoolId);
-               System.out.println("Lots with null values: " + nullDeliveredLots);
-            } else {
-               System.out.println("No null lots found.");
-            }*/
             
             if (!nullDeliveredLots.isEmpty()) {
                // If the school exists in the generated map, check its lots
@@ -361,7 +350,6 @@ public class MainController {
                      
                      // Add the cbm before the transfer of the data
                      schoolModel.addCbm(cbm);
-                     
                      tableDataList.add(schoolModel);
                   }
                } else {
@@ -370,8 +358,6 @@ public class MainController {
                   
                   // Add the cbm before the transfer of the data
                   schoolModel.addCbm(cbm);
-                  
-                  // If no generated lot exists but delivered lot is valid, add to list
                   tableDataList.add(schoolModel);
                }
             }
@@ -390,7 +376,6 @@ public class MainController {
                   
                   // Add the cbm before the transfer of the data
                   schoolModel.addCbm(cbm);
-                  
                   tableDataList.add(schoolModel);
                }
             } else {
@@ -399,8 +384,6 @@ public class MainController {
                
                // Add the cbm before the transfer of the data
                schoolModel.addCbm(cbm);
-               
-               // If no generated lot exists but delivered lot is valid, add to list
                tableDataList.add(schoolModel);
             }
          }
@@ -410,36 +393,41 @@ public class MainController {
    
    /// Helper to get the total CBM of the school based on the selected lot and the availability of the school lots
    private double getTotalCBM(List<String> selectedLot, SchoolList_TableModel schoolModel, List<String> nullDeliveredLots, List<String> nullGeneratedLots) {
-      double cbm = 0;
+      double cbm = 0; // Initialize CBM to accumulate the total volume
       
-      // Get the grade level list to get the lot of the school
+      // Retrieve the list of grade levels associated with the school
       List<SchoolGradeLevel_Model> schoolGradeLevelList = schoolModel.getTableSchoolGradeLevelList();
       
-      // Process the Grade Level List
+      // Iterate through each grade level in the school's list
       for (SchoolGradeLevel_Model gradeLevelModel : schoolGradeLevelList) {
-         // Process the Lot List
+         // Iterate through each lot associated with the current grade level
          for (SchoolLot_Model schoolLotModel : gradeLevelModel.getTableSchoolLotList()) {
-            // Extract the lot number from the school lot
+            // Extract the lot number from the lot name
             int lotNum = extractLotNumber(schoolLotModel.getLotName());
             
+            // Check if nullDeliveredLots is not null (meaning there's a delivered lot to compare)
             if (nullDeliveredLots != null) {
+               // Check if nullGeneratedLots is also not null (meaning there are generated lots to compare)
                if (nullGeneratedLots != null) {
-                  if (nullDeliveredLots.contains(String.valueOf(lotNum))) {
-                     if (nullGeneratedLots.contains(String.valueOf(lotNum))) {
-                        cbm += schoolLotModel.getCbm();
-                     }
+                  // If both delivered and generated lots contain this lot number, add its CBM
+                  if (nullDeliveredLots.contains(String.valueOf(lotNum)) && nullGeneratedLots.contains(String.valueOf(lotNum))) {
+                     cbm += schoolLotModel.getCbm();
                   }
                } else {
+                  // If only delivered lots exist and contain this lot number, add its CBM
                   if (nullDeliveredLots.contains(String.valueOf(lotNum))) {
                      cbm += schoolLotModel.getCbm();
                   }
                }
             } else {
+               // If there are no delivered lots, check if there are generated lots
                if (nullGeneratedLots != null) {
+                  // If the generated lots contain this lot number, add its CBM
                   if (nullGeneratedLots.contains(String.valueOf(lotNum))) {
                      cbm += schoolLotModel.getCbm();
                   }
                } else {
+                  // If neither delivered nor generated lots exist, check if the lot is in the selected lots
                   if (selectedLot.contains(String.valueOf(lotNum))) {
                      cbm += schoolLotModel.getCbm();
                   }
@@ -448,9 +436,11 @@ public class MainController {
          }
       }
       
-      return cbm;
+      return cbm; // Return the total CBM calculated for the school
    }
    
+   
+   /** If the next projects has different lots, modify the methods and the models for the exact lots **/
    /// Helper method to check if the delivered school has a valid lot
    private List<String> getDeliveredLotsWithNullValues(List<String> selectedLot, DeliveredSchoolModel delivered) {
       // Map delivered lots to their corresponding lot numbers
@@ -478,7 +468,7 @@ public class MainController {
       return nullLots; // Return list of lots with null values
    }
    
-   ///Helper method to check if the generated school has a valid lot
+   /// Helper method to check if the generated school has a valid lot
    private List<String> getGeneratedLotsWithNullValues(List<String> selectedLot, GeneratedSchoolModel generated) {
       // Map delivered lots to their corresponding lot numbers
       Map<String, String> generatedLots = new LinkedHashMap<>();

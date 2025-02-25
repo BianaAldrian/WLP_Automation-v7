@@ -3,8 +3,6 @@ package org.nikkatrading.wlp_automationv7.Models;
 import java.sql.Timestamp;
 
 public class GeneratedSchoolModel {
-   String batchNo;
-   String createdAt;
    int schoolId;
    String lot6;
    String lot7;
@@ -15,9 +13,7 @@ public class GeneratedSchoolModel {
    String lot13;
    String lot14;
    
-   public GeneratedSchoolModel(String batchNo, String createdAt, int schoolId, String lot6, String lot7, String lot8, String lot9, String lot10, String lot11, String lot13, String lot14) {
-      this.batchNo = batchNo;
-      this.createdAt = createdAt;
+   public GeneratedSchoolModel(int schoolId, String lot6, String lot7, String lot8, String lot9, String lot10, String lot11, String lot13, String lot14) {
       this.schoolId = schoolId;
       this.lot6 = lot6;
       this.lot7 = lot7;
@@ -27,22 +23,6 @@ public class GeneratedSchoolModel {
       this.lot11 = lot11;
       this.lot13 = lot13;
       this.lot14 = lot14;
-   }
-   
-   public String getBatchNo() {
-      return batchNo;
-   }
-   
-   public void setBatchNo(String batchNo) {
-      this.batchNo = batchNo;
-   }
-   
-   public String getCreatedAt() {
-      return createdAt;
-   }
-   
-   public void setCreatedAt(String createdAt) {
-      this.createdAt = createdAt;
    }
    
    public int getSchoolId() {

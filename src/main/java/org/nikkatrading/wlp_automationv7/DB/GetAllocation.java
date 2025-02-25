@@ -157,8 +157,6 @@ public class GetAllocation {
          SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
          
          while (resultSet.next()) {
-            String batchNo = resultSet.getString("batch_no");
-            Timestamp createdAt = resultSet.getTimestamp("created_at");
             int schoolId = resultSet.getInt("school_id");
             String lot6 = resultSet.getString("lot_6");
             String lot7 = resultSet.getString("lot_7");
@@ -169,33 +167,34 @@ public class GetAllocation {
             String lot13 = resultSet.getString("lot_13");
             String lot14 = resultSet.getString("lot_14");
             
-            // Convert Timestamp to formatted String
-            String formattedDate = (createdAt != null) ? dateFormat.format(createdAt) : "N/A";
+            // Check if schoolId already exists in generatedSchoolList
+            GeneratedSchoolModel existingModel = null;
+            for (GeneratedSchoolModel model : generatedSchoolList) {
+               if (model.getSchoolId() == schoolId) {
+                  existingModel = model;
+                  break;
+               }
+            }
             
-            generatedSchoolList.add(new GeneratedSchoolModel(batchNo, formattedDate, schoolId, lot6, lot7, lot8, lot9, lot10, lot11, lot13, lot14));
-            
-            // Print formatted output
-            /*System.out.println("=======================================");
-            System.out.println(" Batch No    : " + batchNo);
-            System.out.println(" Created At  : " + formattedDate);
-            System.out.println(" School ID   : " + schoolId);
-            System.out.println(" -------------------------------------- ");
-            System.out.println(" Lot 6       : " + lot6);
-            System.out.println(" Lot 7       : " + lot7);
-            System.out.println(" Lot 8       : " + lot8);
-            System.out.println(" Lot 9       : " + lot9);
-            System.out.println(" Lot 10      : " + lot10);
-            System.out.println(" Lot 11      : " + lot11);
-            System.out.println(" Lot 13      : " + lot13);
-            System.out.println(" Lot 14      : " + lot14);
-            System.out.println("=======================================");
-            System.out.println();*/
+            if (existingModel != null) {
+               // Update only null values
+               if (existingModel.getLot6() == null) existingModel.setLot6(lot6);
+               if (existingModel.getLot7() == null) existingModel.setLot7(lot7);
+               if (existingModel.getLot8() == null) existingModel.setLot8(lot8);
+               if (existingModel.getLot9() == null) existingModel.setLot9(lot9);
+               if (existingModel.getLot10() == null) existingModel.setLot10(lot10);
+               if (existingModel.getLot11() == null) existingModel.setLot11(lot11);
+               if (existingModel.getLot13() == null) existingModel.setLot13(lot13);
+               if (existingModel.getLot14() == null) existingModel.setLot14(lot14);
+            } else {
+               // Add new entry if schoolId is not found
+               generatedSchoolList.add(new GeneratedSchoolModel(schoolId, lot6, lot7, lot8, lot9, lot10, lot11, lot13, lot14));
+            }
          }
       } catch (SQLException e) {
          e.printStackTrace();
       }
    }
-
    
 //   private static void getSpecific_Allocation(List<String> selectedLot, List<SPIGradeLevel> spiGradeLevelList, List<CBMGradeLevel> cbmGradeLevelList) {
 //      schoolListTable.clear();
@@ -361,32 +360,46 @@ public class GetAllocation {
    
    private static int getSPI(List<SPIGradeLevel> spiGradeLevelList, String gradeLevelName, String lotName, String itemName, int quantity) {
       int spi = 0;
+      
       for (SPIGradeLevel spiGradeLevel : spiGradeLevelList) {
-         if (gradeLevelName.contains("2021")) {
+         // Loop through each SPIGradeLevel in spiGradeLevelList
+         
+         if (spiGradeLevel.getGradeLevel().equalsIgnoreCase(gradeLevelName.split("_")[0])) {
+            // Check if the grade level matches the first part of gradeLevelName (before "_")
             
             for (SPILot spiLot : spiGradeLevel.getSpiLotList()) {
-               if (spiLot.getLot().contains("2021")) {
-                  
-                  for (SPIItems spiItems : spiLot.getItemsList()) {
-                     if (spiItems.getItem().equalsIgnoreCase(itemName)) {
-                        
-                        spi = quantity / spiItems.getQty();
-                        return spi;
-                     }
-                  }
-               }
-            }
-         } else {
-            if (spiGradeLevel.getGradeLevel().equalsIgnoreCase(gradeLevelName)) {
+               // Loop through each SPILot in the matched SPIGradeLevel
                
-               for (SPILot spiLot : spiGradeLevel.getSpiLotList()) {
-                  if (spiLot.getLot().equalsIgnoreCase(lotName)) {
+               if (gradeLevelName.contains("2021")) {
+                  // If gradeLevelName contains "2021", filter lots related to 2021
+                  
+                  if (spiLot.getLot().contains("2021")) {
+                     // If the SPILot name also contains "2021", proceed to check items
                      
                      for (SPIItems spiItems : spiLot.getItemsList()) {
+                        // Loop through items in the matched SPILot
+                        
                         if (spiItems.getItem().equalsIgnoreCase(itemName)) {
-                           
+                           // If the item name matches, calculate SPI
                            spi = quantity / spiItems.getQty();
-                           return spi;
+                           return spi; // Return early once found
+                        }
+                     }
+                  }
+                  
+               } else {
+                  // If gradeLevelName does not contain "2021", compare the lot name directly
+                  
+                  if (spiLot.getLot().equalsIgnoreCase(lotName)) {
+                     // If the SPILot name matches lotName, proceed to check items
+                     
+                     for (SPIItems spiItems : spiLot.getItemsList()) {
+                        // Loop through items in the matched SPILot
+                        
+                        if (spiItems.getItem().equalsIgnoreCase(itemName)) {
+                           // If the item name matches, calculate SPI
+                           spi = quantity / spiItems.getQty();
+                           return spi; // Return early once found
                         }
                      }
                   }
@@ -394,6 +407,9 @@ public class GetAllocation {
             }
          }
       }
+
+      // If no matching item is found, the method will return whatever default value is set for 'spi' (if any)
+      
       return spi;
    }
    
@@ -401,35 +417,38 @@ public class GetAllocation {
       double cbm = 0;
       
       for (CBMGradeLevel cbmGradeLevel : cbmGradeLevelList) {
-//         System.out.println("Checking Grade Level: " + cbmGradeLevel.getGradeLevel());
+         // Loop through each CBMGradeLevel in cbmGradeLevelList
          
-         if (gradeLevelName.contains("2021")) {
+         if (cbmGradeLevel.getGradeLevel().equalsIgnoreCase(gradeLevelName.split("_")[0])) {
+            // Check if the grade level matches the first part of gradeLevelName (before "_")
+            
             for (CBMLot cbmLot : cbmGradeLevel.getCbmLotList()) {
-//               System.out.println("Checking Lot: " + cbmLot.getLot());
+               // Loop through each CBMLot in the matched CBMGradeLevel
                
-               if (cbmLot.getLot().contains("2021")) {
-                  cbm = cbmLot.getCbm() * spi;
-//                  System.out.println("CBM Found: " + cbm);
-                  return cbm; // Exit early if found
-               }
-            }
-         } else {
-            if (cbmGradeLevel.getGradeLevel().equalsIgnoreCase(gradeLevelName)) {
-               for (CBMLot cbmLot : cbmGradeLevel.getCbmLotList()) {
-//                  System.out.println("Checking Lot: " + cbmLot.getLot());
+               if (gradeLevelName.contains("2021")) {
+                  // If gradeLevelName contains "2021", filter lots related to 2021
+                  
+                  if (cbmLot.getLot().contains("2021")) {
+                     // If the CBMLot name also contains "2021", calculate cbm
+                     cbm = cbmLot.getCbm() * spi;
+                     return cbm; // Return early once found
+                  }
+                  
+               } else {
+                  // If gradeLevelName does not contain "2021", use the regular lot name comparison
                   
                   if (cbmLot.getLot().equalsIgnoreCase(lotName.split(":")[0].trim())) {
+                     // Check if CBMLot name matches the first part of lotName (before ":"), ignoring case
                      cbm = cbmLot.getCbm() * spi;
-//                     System.out.println("CBM Found: " + cbm);
-                     return cbm; // Exit early if found
+                     return cbm; // Return early once found
                   }
                }
             }
          }
       }
+
+   // If no matching lot is found, the method will return whatever default value is set for 'cbm' (if any)
       
-      System.out.println("CBM remains 0"); // If it never enters the if conditions
       return cbm;
    }
-   
 }
