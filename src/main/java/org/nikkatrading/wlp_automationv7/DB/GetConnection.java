@@ -20,11 +20,11 @@ public class GetConnection {
    
    static {
       // Localhost Configuration (for testing)
-      /*DB_HOST = "jdbc:mysql://localhost:3306/";
-      PASSWORD = "Res3cted";*/
+      DB_HOST = "jdbc:mysql://localhost:3306/";
+      PASSWORD = "Res3cted";
       
       // Uncomment below for Main Server Configuration
-        PASSWORD = "NikkaT2024!@";
+        /*PASSWORD = "NikkaT2024!@";
         String defaultGateway = getDefaultGateway();
         if ("192.168.88.1".equals(defaultGateway)) {
             DB_HOST = "jdbc:mysql://192.168.88.3:3306/";
@@ -32,7 +32,7 @@ public class GetConnection {
         } else {
             DB_HOST = "jdbc:mysql://112.199.100.14:3306/";
             System.out.println("Connected to an outside network.");
-        }
+        }*/
       
       // Start Connection Monitoring in Background
       startConnectionMonitoring();

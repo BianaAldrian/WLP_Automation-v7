@@ -45,7 +45,7 @@ public class LoadingUtil {
       vbox.setAlignment(Pos.CENTER);
       root.getChildren().add(vbox);
       
-      Scene scene = new Scene(root, 250, 150);
+      Scene scene = new Scene(root, 300, 200);
       scene.setFill(Color.TRANSPARENT);
       loadingStage.setScene(scene);
       

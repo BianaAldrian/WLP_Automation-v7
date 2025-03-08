@@ -26,6 +26,7 @@ public class LotsSetupController {
    private String[] sortedLotsArray; // Array for storing the sorted lots
    private final List<CheckBox> checkBoxes = new ArrayList<>();  // Store references to all CheckBoxes
    
+   private List<String> finalSelectedLot;
    
    private MainController.LotsSetupCallback callback; // Add a reference to the callback
    
@@ -51,26 +52,42 @@ public class LotsSetupController {
       }
    }
    
+   public void setFinalSelectedLot(List<String> finalSelectedLot) {
+      this.finalSelectedLot = finalSelectedLot;
+//      System.out.println("finalSelectedLot received: " + finalSelectedLot);
+      
+      // Refresh checkboxes with previous selections
+      populateLotsGridPane();
+   }
+   
    // Populate the GridPane using the array of sorted lot
    private void populateLotsGridPane() {
-      // Check if sortedLotsArray is null before using it
+      lotsGridPane.getChildren().clear(); // Clear existing checkboxes before populating
+      
       if (sortedLotsArray != null) {
-         // Loop through sortedLotsArray and create CheckBox for each entry
          for (int i = 0; i < sortedLotsArray.length; i++) {
-            // Create a CheckBox for each lot
-            CheckBox checkBox = new CheckBox(sortedLotsArray[i].split(":")[0].replace("LOT", "").trim());
-            checkBoxes.add(checkBox);  // Add CheckBox to the list
+            String lotNumber = sortedLotsArray[i].split(":")[0].replace("LOT", "").trim();
+            CheckBox checkBox = new CheckBox(lotNumber);
+            checkBoxes.add(checkBox);
             
-            // Add an event handler to each CheckBox
+            // Automatically check if it's in finalSelectedLot
+            if (finalSelectedLot != null && finalSelectedLot.contains(lotNumber)) {
+               checkBox.setSelected(true);
+            }
+            
+            // Event handler for Select All checkbox
             checkBox.setOnAction(event -> {
                rbAll.setSelected(checkBoxes.stream().allMatch(CheckBox::isSelected));
             });
             
-            // Add the CheckBox to the GridPane at row i, column 0 (or wherever you want)
-            lotsGridPane.add(checkBox, i % 4, i / 4);  // Distribute checkboxes in a 4-column grid
+            // Add the CheckBox to GridPane in a 4-column layout
+            lotsGridPane.add(checkBox, i % 4, i / 4);
          }
+         
+         // Ensure rbAll is selected if all checkboxes are checked
+         rbAll.setSelected(!checkBoxes.isEmpty() && checkBoxes.stream().allMatch(CheckBox::isSelected));
       } else {
-         System.out.println("sortedLotsArray is null in populateLotsGridPane method.");
+         System.out.println("sortedLotsArray is null in populateLotsGridPane.");
       }
    }
    

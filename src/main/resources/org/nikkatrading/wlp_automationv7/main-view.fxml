@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
 <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" spacing="10.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.nikkatrading.wlp_automationv7.MainController">
     <padding>
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -125,108 +142,106 @@
     </HBox>
     <HBox alignment="CENTER_LEFT">
         <VBox.margin>
-            <Insets left="20.0" />
+            <Insets left="20.0" right="20.0" />
         </VBox.margin>
-        <CheckBox fx:id="cb_autoCheck" mnemonicParsing="false" text="Auto Check Searched IDs:">
-            <font>
-                <Font name="Arial" size="12.0" />
-            </font>
-        </CheckBox>
-        <!--<HBox alignment="CENTER">
-            <HBox.margin>
-                <Insets left="30.0" />
-            </HBox.margin>
-            <ImageView fitHeight="20.0" fitWidth="20.0">
-                <Image url="@res/info.png" />
-            </ImageView>
-            <Text fx:id="info_searchSuccess" fill="GREEN" strokeType="OUTSIDE" strokeWidth="0.0" text="Search Successful!" textAlignment="CENTER">
-                <HBox.margin>
-                    <Insets left="5.0" />
-                </HBox.margin>
+        <HBox>
+            <CheckBox fx:id="cb_autoCheck" mnemonicParsing="false" text="Auto Check Searched ID's">
                 <font>
-                    <Font name="Arial" size="12.0" />
+                    <Font name="Arial Bold" size="12.0" />
                 </font>
-            </Text>
+            </CheckBox>
+         <HBox>
+            <children>
+                   <Text fx:id="txtSuccess" fill="#03bf00" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
+                       <font>
+                           <Font name="Arial Bold" size="12.0" />
+                       </font>
+                  <HBox.margin>
+                     <Insets left="10.0" />
+                  </HBox.margin>
+                   </Text>
+                   <Text fx:id="txtFailed" fill="#df0606" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
+                       <font>
+                           <Font name="Arial Bold" size="12.0" />
+                       </font>
+                  <HBox.margin>
+                     <Insets left="10.0" />
+                  </HBox.margin>
+                   </Text>
+            </children>
+         </HBox>
         </HBox>
-        <HBox alignment="CENTER" layoutX="203.0" layoutY="10.0">
-            <HBox.margin>
-                <Insets left="30.0" />
-            </HBox.margin>
-            <ImageView fitHeight="20.0" fitWidth="20.0">
-                <Image url="@res/info.png" />
-            </ImageView>
-            <Text fx:id="info_notFound" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="ID not found: (schoolID)" textAlignment="CENTER">
-                <HBox.margin>
-                    <Insets left="5.0" />
-                </HBox.margin>
-                <font>
-                    <Font name="Arial" size="12.0" />
-                </font>
-            </Text>
-        </HBox>-->
+      <Pane HBox.hgrow="ALWAYS" />
+      <CheckBox fx:id="cbContainer" mnemonicParsing="false" text="Container">
+         <font>
+            <Font name="Arial Bold" size="12.0" />
+         </font>
+         <HBox.margin>
+            <Insets />
+         </HBox.margin>
+      </CheckBox>
     </HBox>
 
     <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
         <SplitPane dividerPositions="0.6767100977198697" layoutX="403.0" layoutY="46.0" prefHeight="500.0" style="-fx-border-color: none;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="385.0" prefWidth="607.0">
-                <Label layoutX="304.0" layoutY="6.0" text="School List" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0" />
-                <TableView fx:id="sclList_table" layoutX="20.0" layoutY="17.0" prefHeight="200.0" prefWidth="1009.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
+                <Label layoutX="304.0" layoutY="6.0" text="School List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="0.0" />
+                <TableView fx:id="schoolListTableView" layoutX="20.0" layoutY="17.0" prefHeight="200.0" prefWidth="1009.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="selectSchool" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
+                        <TableColumn fx:id="colSelectSchool" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
                             <graphic>
-                                <StackPane>
-                                    <ImageView fx:id="schoolListTable_checkAll" fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
+                                <StackPane fx:id="checkAllSchools">
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
                                         <Image url="@res/check-all.png" />
-                                        <cursor>
-                                            <Cursor fx:constant="HAND" />
-                                        </cursor>
                                     </ImageView>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
                                 </StackPane>
                             </graphic>
                         </TableColumn>
-                        <TableColumn fx:id="schoolListTable_region" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
-                        <TableColumn fx:id="schoolListTable_division" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
-                        <TableColumn fx:id="schoolListTable_schoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="65.0" sortable="false" text="School ID" />
-                        <TableColumn fx:id="schoolListTable_schoolName" editable="false" minWidth="100.0" prefWidth="181.0" sortable="false" text="School Name" />
-                        <TableColumn fx:id="schoolListTable_gradeLvl" editable="false" maxWidth="156.0" minWidth="90.0" prefWidth="106.0" sortable="false" text="Grade Lvl." />
-                        <TableColumn fx:id="schoolListTable_cbm" editable="false" maxWidth="83.0" minWidth="60.0" prefWidth="79.0" sortable="false" text="CBM" />
+                        <TableColumn fx:id="colSchoolRegion" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
+                        <TableColumn fx:id="colSchoolDivision" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
+                        <TableColumn fx:id="colSchoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="65.0" sortable="false" text="School ID" />
+                        <TableColumn fx:id="colSchoolName" editable="false" minWidth="100.0" prefWidth="181.0" sortable="false" text="School Name" />
+                        <TableColumn fx:id="colGradeLevel" editable="false" maxWidth="156.0" minWidth="90.0" prefWidth="106.0" sortable="false" text="Grade Lvl." />
+                        <TableColumn fx:id="colCBM" editable="false" maxWidth="83.0" minWidth="60.0" prefWidth="79.0" sortable="false" text="CBM" />
                     </columns>
                 </TableView>
             </AnchorPane>
 
             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="385.0" prefWidth="607.0">
-                <Label layoutX="304.0" layoutY="6.0" text="Selected School List" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0" />
-                <TableView fx:id="slctdTableView" prefHeight="200.0" prefWidth="424.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
+                <Label layoutX="304.0" layoutY="6.0" text="Selected School List" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="0.0" />
+                <TableView fx:id="selectedSchoolTableView" prefHeight="200.0" prefWidth="424.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="17.0">
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
                     <columns>
-                        <TableColumn fx:id="slctdSelectColumn" editable="false" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
+                        <TableColumn fx:id="colSelectedSchool" editable="false" maxWidth="35.0" minWidth="35.0" prefWidth="35.0" resizable="false" sortable="false">
                             <graphic>
-                                <StackPane>
-                                    <ImageView fx:id="schoolListTable_deleteAll" fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
+                                <StackPane fx:id="deleteAllSelected">
+                                    <ImageView fitHeight="25.0" fitWidth="25.0" focusTraversable="true">
                                         <Image url="@res/trash.png" />
-                                        <cursor>
-                                            <Cursor fx:constant="HAND" />
-                                        </cursor>
                                     </ImageView>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor>
                                 </StackPane>
                             </graphic>
                         </TableColumn>
-                        <TableColumn fx:id="itemNo" editable="false" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" sortable="false" text="No." />
-                        <TableColumn fx:id="slctdRegion" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
-                        <TableColumn fx:id="slctdDivision" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
-                        <TableColumn fx:id="slctdSchoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="61.0" sortable="false" text="School ID" />
-                        <TableColumn fx:id="slctdSchoolName" editable="false" minWidth="100.0" prefWidth="219.0" sortable="false" text="School Name" />
-                        <TableColumn fx:id="slctdGradeLvl" editable="false" maxWidth="150.0" minWidth="90.0" prefWidth="120.0" sortable="false" text="Grade Lvl." />
-                        <TableColumn fx:id="slctdCbm" editable="false" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" sortable="false" text="CBM" />
+                        <TableColumn fx:id="colSelectedNo" editable="false" maxWidth="37.0" minWidth="37.0" prefWidth="37.0" sortable="false" text="No." />
+                        <TableColumn fx:id="colSelectedRegion" editable="false" maxWidth="86.0" minWidth="60.0" prefWidth="83.0" sortable="false" text="Region" />
+                        <TableColumn fx:id="colSelectedDivision" editable="false" maxWidth="80.0" minWidth="60.0" sortable="false" text="Division" />
+                        <TableColumn fx:id="colSelectedSchoolID" editable="false" maxWidth="70.0" minWidth="61.0" prefWidth="61.0" sortable="false" text="School ID" />
+                        <TableColumn fx:id="colSelectedSchoolName" editable="false" minWidth="100.0" prefWidth="219.0" sortable="false" text="School Name" />
+                        <TableColumn fx:id="colSelectedGradeLevel" editable="false" maxWidth="150.0" minWidth="90.0" prefWidth="120.0" sortable="false" text="Grade Lvl." />
+                        <TableColumn fx:id="colSelectedCBM" editable="false" maxWidth="60.0" minWidth="60.0" prefWidth="60.0" sortable="false" text="CBM" />
                     </columns>
                 </TableView>
             </AnchorPane>
-
         </SplitPane>
     </AnchorPane>
     <HBox alignment="CENTER_LEFT" prefHeight="50.0">
@@ -248,7 +263,19 @@
                 </HBox.margin>
             </TextField>
         </HBox>
-        <Pane HBox.hgrow="ALWAYS" />
+        <Pane HBox.hgrow="ALWAYS">
+            <GridPane fx:id="batchCbmGrid">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                </rowConstraints>
+            <padding>
+               <Insets left="10.0" />
+            </padding>
+            </GridPane>
+        </Pane>
         <CheckBox fx:id="showMB" mnemonicParsing="false" text="Show MotherBox Details">
             <font>
                 <Font name="Arial Bold" size="15.0" />
