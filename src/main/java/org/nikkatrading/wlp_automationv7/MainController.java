@@ -22,7 +22,9 @@ import org.nikkatrading.wlp_automationv7.DB.GetConnection;
 import org.nikkatrading.wlp_automationv7.GenerateWLP.ProcessWLP;
 import org.nikkatrading.wlp_automationv7.Models.CBM.CBMGradeLevel;
 import org.nikkatrading.wlp_automationv7.Models.SPI.SPIGradeLevel;
+import org.nikkatrading.wlp_automationv7.Models.Table.SchoolGradeLevel_Model;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolList_TableModel;
+import org.nikkatrading.wlp_automationv7.Models.Table.SchoolLot_Model;
 import org.nikkatrading.wlp_automationv7.ReadExcel.ReadCBM;
 import org.nikkatrading.wlp_automationv7.ReadExcel.ReadSPI;
 import org.nikkatrading.wlp_automationv7.UI.LoadingUtil;
@@ -140,17 +142,17 @@ public class MainController {
       generate.setOnAction(event -> {
          new ProcessWLP(mainStage, finalSelectedLot, selectedSchool, selectedBatchesMap);
          
-         /*for (SchoolList_TableModel schoolListModel : selectedSchool) {
+         for (SchoolList_TableModel schoolListModel : selectedSchool) {
             System.out.println("- " + schoolListModel.getSchoolID() + " : " + schoolListModel.getSchoolName());
             
             for (SchoolGradeLevel_Model schoolGradeLvlModel : schoolListModel.getTableSchoolGradeLevelList()) {
                System.out.println("    >- Grade Level: " + schoolGradeLvlModel.getGradeLevel());
                
-               for (SchoolLot_Model schoolLotModel : schoolGradeLvlModel.getTableSchoolLotList()) {
+               /*for (SchoolLot_Model schoolLotModel : schoolGradeLvlModel.getTableSchoolLotList()) {
                   System.out.println("       -- " + schoolLotModel.getLotName().split(":")[0] + " <SPI: " + schoolLotModel.getSetPerItem() + ">" + " <CBM: " + schoolLotModel.getCbm() + ">");
-               }
+               }*/
             }
-         }*/
+         }
          
          /*for (Map.Entry<Integer, List<SchoolList_TableModel>> entry : selectedBatchesMap.entrySet()) {
             System.out.println("Batch " + entry.getKey() + ":");
@@ -440,59 +442,79 @@ public class MainController {
       String selectedDivision = cb_division.getSelectionModel().getSelectedItem().toString();
       String schoolIDInput = inp_schoolID.getText().trim();
       
-      // Extract 6-digit school IDs from the input
+      // Extract school IDs while preserving input order
       List<Integer> schoolIDs = new ArrayList<>();
-      for (int i = 0; i <= schoolIDInput.length() - 6; i += 6) {
-         try {
-            int schoolID = Integer.parseInt(schoolIDInput.substring(i, i + 6));
-            schoolIDs.add(schoolID);
-         } catch (NumberFormatException e) {
-            e.printStackTrace(); // Handle invalid numbers gracefully
+      if (!schoolIDInput.isEmpty()) {
+         for (int i = 0; i <= schoolIDInput.length() - 6; i += 6) {
+            try {
+               int schoolID = Integer.parseInt(schoolIDInput.substring(i, i + 6));
+               schoolIDs.add(schoolID);
+            } catch (NumberFormatException e) {
+               e.printStackTrace(); // Handle invalid numbers gracefully
+            }
          }
       }
       
-      // Filter the table data based on the selected criteria
-      List<SchoolList_TableModel> filteredList = tableDataList.stream()
-              .filter(school -> "All".equals(selectedRegion) || school.getRegion().equals(selectedRegion))
-              .filter(school -> "All".equals(selectedDivision) || school.getDivision().equals(selectedDivision))
-              .filter(school -> schoolIDs.isEmpty() || schoolIDs.contains(school.getSchoolID())) // Filter by multiple School IDs
-              .toList();
+      // If no school IDs are entered, filter only by region & division
+      List<SchoolList_TableModel> filteredList;
+      boolean isFilteringByID = !schoolIDs.isEmpty();
+      
+      if (!isFilteringByID) {
+         filteredList = tableDataList.stream()
+                 .filter(school -> "All".equals(selectedRegion) || school.getRegion().equals(selectedRegion))
+                 .filter(school -> "All".equals(selectedDivision) || school.getDivision().equals(selectedDivision))
+                 .toList();
+      } else {
+         // Use a set to track already added school IDs and prevent duplicates
+         Set<Integer> addedSchoolIDs = new HashSet<>();
+         filteredList = schoolIDs.stream()
+                 .map(id -> tableDataList.stream()
+                         .filter(school -> !addedSchoolIDs.contains(school.getSchoolID()) && // Prevent duplicates
+                                 ("All".equals(selectedRegion) || school.getRegion().equals(selectedRegion)) &&
+                                 ("All".equals(selectedDivision) || school.getDivision().equals(selectedDivision)) &&
+                                 school.getSchoolID() == id)
+                         .findFirst()
+                         .map(school -> {
+                            addedSchoolIDs.add(school.getSchoolID()); // Mark as added
+                            return school;
+                         })
+                         .orElse(null))
+                 .filter(Objects::nonNull)
+                 .toList();
+      }
       
       // Identify school IDs that were not found
       List<Integer> notFoundIDs = schoolIDs.stream()
               .filter(id -> filteredList.stream().noneMatch(school -> school.getSchoolID() == id))
               .toList();
       
-      // Reset all selections before applying auto-check
-      for (SchoolList_TableModel school : tableDataList) {
-         school.setSelect(false);
+      // Preserve existing selections
+      Set<Integer> selectedIDsBeforeFiltering = new HashSet<>(selectedSchoolIDs);
+      
+      // Auto-select only when filtering by ID
+      if (cb_autoCheck.isSelected() && isFilteringByID) {
+         for (SchoolList_TableModel school : filteredList) {
+            // ✅ Prevent duplicate addition
+            if (!selectedIDsBeforeFiltering.contains(school.getSchoolID())) {
+               school.setSelect(true);
+               selectedSchool.add(school);
+               selectedSchoolIDs.add(school.getSchoolID());
+               TotalCBM += school.getCbm();
+            }
+         }
       }
       
-      // Auto-select filtered schools if cb_autoCheck is checked and school IDs exist
-      selectedSchool.clear();
-      selectedSchoolIDs.clear();
-      TotalCBM = 0; // Reset total CBM
-      
-      if (cb_autoCheck.isSelected() && !filteredList.isEmpty()) {
-         for (SchoolList_TableModel school : filteredList) {
-            school.setSelect(true); // Auto-select only filtered schools
-            selectedSchool.add(school);
-            selectedSchoolIDs.add(school.getSchoolID());
-            TotalCBM += school.getCbm();
-         }
-         
-         // Update TotalCBM in UI
+      // Update total volume if there are selected schools
+      if (!selectedSchool.isEmpty()) {
          total_volume.setText(String.valueOf(Math.round(TotalCBM * 100.0) / 100.0));
       }
       
-      // Populate the first table with the filtered list
+      // Populate the tables while preserving the original sequence
       populateTable(schoolListTableView, filteredList, false);
-      
-      // Update the second table with selected schools (if auto-checked)
       populateTable(selectedSchoolTableView, selectedSchool, true);
       
-      // Show success or failed message
-      if (!schoolIDs.isEmpty()) {
+      // Show messages
+      if (isFilteringByID) {
          if (!filteredList.isEmpty()) {
             txtSuccess.setVisible(true);
             txtSuccess.setText("Search Successful!");
@@ -513,7 +535,6 @@ public class MainController {
    
    /// Generic method to populate a TableView (First and Second)
    private void populateTable(TableView<SchoolList_TableModel> tableView, List<SchoolList_TableModel> tableDataList, boolean isSelectedTable) {
-      
       ObservableList<SchoolList_TableModel> tableAllocation = FXCollections.observableArrayList(tableDataList);
       tableView.setItems(tableAllocation);
       

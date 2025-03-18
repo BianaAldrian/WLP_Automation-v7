@@ -4,6 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class SchoolList_TableModel {
@@ -22,10 +24,12 @@ public class SchoolList_TableModel {
       this.division = division;
       this.schoolID = schoolID;
       this.schoolName = schoolName;
-      this.gradeLevels = new ArrayList<>();  // Initialize the list
-      this.gradeLevels.add(gradeLevelName);  // Add the first grade level
+      this.gradeLevels = new ArrayList<>();
+      this.gradeLevels.add(gradeLevelName);
       this.cbm = cbm;
-      this.schoolGradeLevelModelList = schoolGradeLevelModelList;
+      
+      // Use the setter to ensure sorting
+      setTableSchoolGradeLevelList(schoolGradeLevelModelList);
    }
    
    public boolean isSelect() {
@@ -81,8 +85,24 @@ public class SchoolList_TableModel {
    public void addGradeLevel(String gradeLevelName) {
       if (!gradeLevels.contains(gradeLevelName)) { // Prevent duplicates
          gradeLevels.add(gradeLevelName);
+         // Sort based on custom order
+         gradeLevels.sort(Comparator.comparingInt(customOrder::indexOf));
+      }
+      
+      // Sort schoolGradeLevelModelList based on the same custom order
+      if (schoolGradeLevelModelList != null) {
+         schoolGradeLevelModelList.sort(Comparator.comparingInt(
+                 sgl -> customOrder.indexOf(sgl.getGradeLevel())
+         ));
       }
    }
+   
+   private static final List<String> customOrder = Arrays.asList(
+           "G1toG3", "G1toG3_2021",
+           "G4toG6", "G4toG6_2021",
+           "JHS", "JHS_2021",
+           "SHSCore", "SHSCore_2021"
+   );
    
    public void addCbm(double additionalCbm) {
       this.cbm += additionalCbm;
@@ -102,5 +122,10 @@ public class SchoolList_TableModel {
    
    public void setTableSchoolGradeLevelList(List<SchoolGradeLevel_Model> schoolGradeLevelModelList) {
       this.schoolGradeLevelModelList = schoolGradeLevelModelList;
+      
+      // Sort the list based on custom order
+      this.schoolGradeLevelModelList.sort(Comparator.comparingInt(
+              sgl -> customOrder.indexOf(sgl.getGradeLevel())
+      ));
    }
 }

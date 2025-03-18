@@ -12,10 +12,8 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ProcessWLP {
    
@@ -29,8 +27,9 @@ public class ProcessWLP {
          Workbook templateWorkbook = new XSSFWorkbook(templateFis);
          Workbook summaryTemplateWorkbook = new XSSFWorkbook(summaryTemplateFis);
          
-         Sheet templateSheet = templateWorkbook.getSheetAt(0);
-         Sheet summaryTemplateSheet = summaryTemplateWorkbook.getSheetAt(0);
+        /* Sheet loadplanSheet = templateWorkbook.getSheetAt(0);
+         Sheet sheet2 = templateWorkbook.getSheetAt(1);
+         Sheet summaryTemplateSheet = summaryTemplateWorkbook.getSheetAt(0);*/
          
          String version = "7.0";
          
@@ -44,7 +43,8 @@ public class ProcessWLP {
          
          int batchCounter = readAndIncrementBatchCounter();
          
-         new CreateLoadPlan(version, formattedTime, formattedDate, batchCounter, templateSheet, templateWorkbook, selectedSchool);
+         new CreateLoadPlan(version, formattedTime, formattedDate, batchCounter, templateWorkbook, selectedSchool);
+         new CreateSummary(version, formattedTime, formattedDate, batchCounter, templateWorkbook, summaryTemplateWorkbook, selectedSchool);
          
          Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
