@@ -6,6 +6,8 @@ import org.apache.poi.util.Units;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolGradeLevel_Model;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolList_TableModel;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolLot_Model;
+import org.nikkatrading.wlp_automationv7.Utility.SessionData;
+import org.nikkatrading.wlp_automationv7.Utility.WLPContext;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class CreateLoadPlan {
    
-   public CreateLoadPlan(String version, String formattedTime, String formattedDate, int batchCounter, Workbook templateWorkbook, List<SchoolList_TableModel> selectedSchool) {
+   public CreateLoadPlan(WLPContext context, String formattedTime, String batchNo, Workbook templateWorkbook, List<SchoolList_TableModel> selectedSchool) {
       Sheet loadplanSheet = templateWorkbook.getSheetAt(0);
       Sheet sheet2 = templateWorkbook.getSheetAt(1);
       
@@ -37,11 +39,13 @@ public class CreateLoadPlan {
          }
       }
       
+      SessionData.getInstance().setLots(String.join(", ", availableLot.toString()));
+      
       // set value in the sheet 2 first before copying it in the lower part of the load plan
       setValueInSheet2(sheet2, templateWorkbook, availableLot, selectedSchool);
       
       // set value in the header part of the load plan
-      setValueInRow1To7(loadplanSheet, templateWorkbook, version, formattedTime, formattedDate, batchCounter, availableLot, selectedSchool);
+      setValueInRow1To7(context, loadplanSheet, templateWorkbook, formattedTime, batchNo, availableLot, selectedSchool);
       
       // set value in the load plan based on the selected schools
       setValueInRow12Onwards(loadplanSheet, templateWorkbook, availableLot, selectedSchool);
@@ -67,6 +71,8 @@ public class CreateLoadPlan {
       int startColumn = 6; // Starting column to copy
       int endColumn = 11; // Ending column to copy
       int currentRowIndex = borderRowIndex + 1; // Start inserting after the source row
+      
+      double totalCbm = 0;
       
       Set<String> gradeLevelSet = new HashSet<>();
       
@@ -189,9 +195,11 @@ public class CreateLoadPlan {
             // Set the cbm per grade level in all selected lots
             if (cbm != 0) {
                setCellValue(sheet2, templateWorkbook, lotList.size() + 1, gradeLvlCol, Math.round(cbm * 100.0) / 100.0);
+               totalCbm += cbm;
             }
             if (cbm2021 != 0) {
                setCellValue(sheet2, templateWorkbook, currentRowIndex - 1, gradeLvlCol, Math.round(cbm2021 * 100.0) / 100.0);
+               totalCbm += cbm2021;
             }
          }
       }
@@ -201,18 +209,21 @@ public class CreateLoadPlan {
       sortedGradeLevels.sort(Comparator.comparingInt(this::getGradeLevelOrder)); // Sort by custom order
       
       String gradeLevelsString = String.join(", ", sortedGradeLevels);
-      setCellValue(sheet2, templateWorkbook, 4, 2, gradeLevelsString);
-      // Set grade levels in row 5 col C
+      setCellValue(sheet2, templateWorkbook, 4, 2, gradeLevelsString); // Set grade levels in row 5 col C
+      
+      setCellValue(sheet2, templateWorkbook, 5, 2, Math.round(totalCbm * 100.0) / 100.0);
       
       /// For 2021, remove this if the project do not have this specific condition
       if (availableLot.contains(14)) {
          // Set the SPI in the cell per lot and per grade level
          setCellValue(sheet2, templateWorkbook, availableLot.size() + 2, 6, 2021);
       }
+      
+      SessionData.getInstance().setTotal_cbm(totalCbm);
    }
    
    /// Method to set a value in row 1 to row 7
-   private void setValueInRow1To7(Sheet templateSheet, Workbook templateWorkbook, String version, String formattedTime, String formattedDate, int batchCounter, Set<Integer> availableLot, List<SchoolList_TableModel> selectedSchool) {
+   private void setValueInRow1To7(WLPContext context, Sheet templateSheet, Workbook templateWorkbook, String formattedTime, String batchNo, Set<Integer> availableLot, List<SchoolList_TableModel> selectedSchool) {
       // Gather unique lots, region, and division names
       Set<String> regionNames = new LinkedHashSet<>();
       Set<String> divisionNames = new LinkedHashSet<>();
@@ -224,7 +235,7 @@ public class CreateLoadPlan {
       }
 
       // Format names
-      String regionNamesString = formatNames(regionNames);
+      String regionNamesString = formatNames(regionNames).replace("Region ", "");
       String divisionNamesString = formatNames(divisionNames);
       String lotString = availableLot.stream()
               .map(String::valueOf) // Convert each Integer to String
@@ -242,14 +253,23 @@ public class CreateLoadPlan {
          e.printStackTrace();
       }
       
-      setCellValue(templateSheet, templateWorkbook, 0, 6, version); // set the version in row 1 col G;
+      setCellValue(templateSheet, templateWorkbook, 0, 3, context.version); // set the version in row 1 col G;
       setCellValue(templateSheet, templateWorkbook, 0, 9, formattedTime); // set the time in row 1 col J;
-      setCellValue(templateSheet, templateWorkbook, 0, 11, "Batch No. " + formattedDate + "-" + batchCounter); // set the batch no in row 1 col L;
+      setCellValue(templateSheet, templateWorkbook, 0, 12, batchNo); // set the batch no in row 1 col L;
       setCellValue(templateSheet, templateWorkbook, 3, 12, "R - " + regionNamesString); // set the region in the row 4 col M;
       setCellValue(templateSheet, templateWorkbook, 5, 1, "# " + divisionNamesString); // set the division in row 6 col B;
       setCellValue(templateSheet, templateWorkbook, 6, 4, "Lot " + lotString); // set the selected lot in row 7 col E;
-      setCellValue(templateSheet, templateWorkbook, 6, 5, "Control No: R" + regionNamesString + " - " + formattedDate + "-" + batchCounter); // set the control number in row 7 col F;
       setCellValue(templateSheet, templateWorkbook, 6, 14, selectedSchool.size()); // set the number of selected school in row 7 col O;
+      
+      if (batchNo.contains("CONTAINER")) {
+         setCellValue(templateSheet, templateWorkbook, 6, 5, batchNo); // set the control number in row 7 col F;
+      } else {
+         setCellValue(templateSheet, templateWorkbook, 6, 5, "Control No: DEPED - R" + regionNamesString + " - " + batchNo.replace("BATCH NO. ", "").trim()); // set the control number in row 7 col F;
+         
+         if (context.cbContainer.isSelected()) {
+            setCellValue(templateSheet, templateWorkbook, 5, 4, "CONTAINER " + context.inp_containerNum.getText());
+         }
+      }
    }
    
    /// Method to set the lots in row 12 and set the school sets in row 14 onwards
@@ -297,6 +317,8 @@ public class CreateLoadPlan {
             // Set the grade level in column 5 for the current row
             setCellValue(templateSheet, templateWorkbook, currentRowIndex, 5, gradeLevelModel.getGradeLevel());
             
+            double gradeLvlTotalCbm = 0;
+            
             for (int i = 0; i < lotList.size(); i++) {
                String lotNum = lotList.get(i).toString();
                
@@ -305,8 +327,13 @@ public class CreateLoadPlan {
                   
                   if (lotModel.getLotName().split(":")[0].replace("LOT", "").trim().equals(lotNum)) {
                      setCellValue(templateSheet, templateWorkbook, currentRowIndex, 6 + i, lotModel.getSetPerItem());
+                     gradeLvlTotalCbm += lotModel.getCbm();
                   }
                }
+            }
+            
+            if (gradeLvlTotalCbm != 0) {
+               setCellValue(templateSheet, templateWorkbook, currentRowIndex, 14, Math.round(gradeLvlTotalCbm * 100.0) / 100.0);
             }
             
             currentRowIndex++; // Move to the next row
@@ -462,7 +489,7 @@ public class CreateLoadPlan {
    }
    
    /// Helper to set a value in a cell without affecting its current style
-   private static void setCellValue(Sheet sheet, Workbook workbook, int rowIndex, int colIndex, Object value) {
+   private void setCellValue(Sheet sheet, Workbook workbook, int rowIndex, int colIndex, Object value) {
       Row row = sheet.getRow(rowIndex);
       if (row == null) {
          row = sheet.createRow(rowIndex);
@@ -562,7 +589,7 @@ public class CreateLoadPlan {
       }
    }
    
-   public static String formatNames(Set<String> regionNames) {
+   public String formatNames(Set<String> regionNames) {
       List<String> regionList = new ArrayList<>(regionNames);
       if (regionList.size() == 1) {
          return regionList.get(0);
@@ -574,7 +601,7 @@ public class CreateLoadPlan {
       }
    }
    
-   private static ClientAnchor getClientAnchor(Workbook workbook) {
+   private ClientAnchor getClientAnchor(Workbook workbook) {
       CreationHelper helper = workbook.getCreationHelper();
       ClientAnchor anchor = helper.createClientAnchor();
       anchor.setCol1(1); // Column 1 (Column B)

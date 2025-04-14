@@ -126,7 +126,7 @@
             </HBox.margin>
         </ChoiceBox>
         <Pane prefHeight="2.0" prefWidth="346.0" HBox.hgrow="ALWAYS" />
-        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Prev. Batch No.">
+        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Batch No.">
             <font>
                 <Font name="System Bold" size="14.0" />
             </font>
@@ -150,28 +150,26 @@
                     <Font name="Arial Bold" size="12.0" />
                 </font>
             </CheckBox>
-         <HBox>
-            <children>
-                   <Text fx:id="txtSuccess" fill="#03bf00" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
-                       <font>
-                           <Font name="Arial Bold" size="12.0" />
-                       </font>
-                  <HBox.margin>
-                     <Insets left="10.0" />
-                  </HBox.margin>
-                   </Text>
-                   <Text fx:id="txtFailed" fill="#df0606" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
-                       <font>
-                           <Font name="Arial Bold" size="12.0" />
-                       </font>
-                  <HBox.margin>
-                     <Insets left="10.0" />
-                  </HBox.margin>
-                   </Text>
-            </children>
-         </HBox>
+            <HBox>
+                <Text fx:id="txtSuccess" fill="#03bf00" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
+                    <font>
+                        <Font name="Arial Bold" size="12.0" />
+                    </font>
+                    <HBox.margin>
+                        <Insets left="10.0" />
+                    </HBox.margin>
+                </Text>
+                <Text fx:id="txtFailed" fill="#df0606" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER">
+                    <font>
+                        <Font name="Arial Bold" size="12.0" />
+                    </font>
+                    <HBox.margin>
+                        <Insets left="10.0" />
+                    </HBox.margin>
+                </Text>
+            </HBox>
         </HBox>
-      <Pane HBox.hgrow="ALWAYS" />
+      <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS" />
       <CheckBox fx:id="cbContainer" mnemonicParsing="false" text="Container">
          <font>
             <Font name="Arial Bold" size="12.0" />
@@ -180,7 +178,7 @@
             <Insets />
          </HBox.margin>
       </CheckBox>
-      <TextField alignment="CENTER" prefWidth="40.0" text="10">
+      <TextField fx:id="inp_containerNum" alignment="CENTER" prefWidth="40.0" text="10">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -271,7 +269,7 @@
                 </HBox.margin>
             </TextField>
         </HBox>
-        <Pane HBox.hgrow="ALWAYS">
+        <Pane maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS">
             <GridPane fx:id="batchCbmGrid">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -284,7 +282,7 @@
             </padding>
             </GridPane>
         </Pane>
-        <CheckBox fx:id="showMB" mnemonicParsing="false" text="Show MotherBox Details">
+        <CheckBox fx:id="showMB" disable="true" mnemonicParsing="false" text="Show MotherBox Details" visible="false">
             <font>
                 <Font name="Arial Bold" size="15.0" />
             </font>

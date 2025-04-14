@@ -21,24 +21,38 @@ import org.nikkatrading.wlp_automationv7.DB.GetAllocation;
 import org.nikkatrading.wlp_automationv7.DB.GetConnection;
 import org.nikkatrading.wlp_automationv7.GenerateWLP.ProcessWLP;
 import org.nikkatrading.wlp_automationv7.Models.CBM.CBMGradeLevel;
+import org.nikkatrading.wlp_automationv7.Models.CBM.CBMLot;
+import org.nikkatrading.wlp_automationv7.Models.DeliveredSchoolModel;
+import org.nikkatrading.wlp_automationv7.Models.GeneratedSchoolModel;
+import org.nikkatrading.wlp_automationv7.Models.KG.KGGradeLevel;
+import org.nikkatrading.wlp_automationv7.Models.LotsModel;
 import org.nikkatrading.wlp_automationv7.Models.SPI.SPIGradeLevel;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolGradeLevel_Model;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolList_TableModel;
 import org.nikkatrading.wlp_automationv7.Models.Table.SchoolLot_Model;
 import org.nikkatrading.wlp_automationv7.ReadExcel.ReadCBM;
+import org.nikkatrading.wlp_automationv7.ReadExcel.ReadKG;
 import org.nikkatrading.wlp_automationv7.ReadExcel.ReadSPI;
 import org.nikkatrading.wlp_automationv7.UI.LoadingUtil;
 import org.nikkatrading.wlp_automationv7.UI.UI_Control;
+import org.nikkatrading.wlp_automationv7.Utility.SessionData;
+import org.nikkatrading.wlp_automationv7.Utility.WLPContext;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MainController {
    private Stage mainStage;  // Add this line
    
    /** @FXML is for the UI **/
+   @FXML private  ImageView refresh;
+   
    @FXML private ImageView lots_setup;
    @FXML private Text lotsDisp;
    
@@ -51,7 +65,10 @@ public class MainController {
    @FXML private ChoiceBox cb_region;
    @FXML private ChoiceBox cb_division;
    
+   @FXML private TextField inp_batchNumber;
+   
    @FXML private CheckBox cbContainer;
+   @FXML private TextField inp_containerNum;
    
    @FXML private TableView<SchoolList_TableModel> schoolListTableView;
    @FXML private StackPane checkAllSchools;
@@ -83,15 +100,24 @@ public class MainController {
    
    
    /** Below is the data types **/
+   
+   private final String version = "7.0";
+   
+   // Store the items per grade level and lot;
    // Store the sorted Lots from lowest to highest
    private String[] sortedLotsArray; // Store sorted lots for reuse
    // Store regions and their corresponding divisions
    private final Map<String, Set<String>> regionToDivisionsMap = new HashMap<>();
    
+   private List<SchoolList_TableModel> finalAllocationData = new ArrayList<>();
+   
    private List<SchoolList_TableModel> tableDataList = new ArrayList<>(); // Store the sorted data for the table
+//   private List<DeliveredSchoolModel> deliveredSchoolList = new ArrayList<>();
+   private List<GeneratedSchoolModel> generatedSchoolList = new ArrayList<>();
    
    private List<SPIGradeLevel> spiGradeLevelList = new ArrayList<>(); // Store the CBM data
    private List<CBMGradeLevel> cbmGradeLevelList = new ArrayList<>(); // Store the CBM data
+   private List<KGGradeLevel> kgGradeLevelList = new ArrayList<>();
    
    private List<String> finalSelectedLot = new ArrayList<>();
    
@@ -133,6 +159,11 @@ public class MainController {
       // Start the loading animation when system is loaded
       executeGettingDataWithLoading();
       
+      // For input of batch number and container
+      inputBatch_ContainerSetup();
+      
+      refresh.setOnMouseClicked(event -> refreshData());
+      
       // Filter table based on the inputted SchoolID
       inp_schoolID.textProperty().addListener((observable, oldValue, newValue) -> filterTable());
       
@@ -140,31 +171,175 @@ public class MainController {
       deleteAllSelected.setOnMouseClicked(event -> deleteAllSelected());
       
       generate.setOnAction(event -> {
-         new ProcessWLP(mainStage, finalSelectedLot, selectedSchool, selectedBatchesMap);
-         
-         for (SchoolList_TableModel schoolListModel : selectedSchool) {
-            System.out.println("- " + schoolListModel.getSchoolID() + " : " + schoolListModel.getSchoolName());
+         try {
+            int totalBatchCount = selectedBatchesMap.values().stream()
+                    .mapToInt(List::size)
+                    .sum();
             
-            for (SchoolGradeLevel_Model schoolGradeLvlModel : schoolListModel.getTableSchoolGradeLevelList()) {
-               System.out.println("    >- Grade Level: " + schoolGradeLvlModel.getGradeLevel());
+            if (cbContainer.isSelected() && selectedBatchesMap.isEmpty()) {
+               Platform.runLater(() -> {
+                  LoadingUtil.closeLoading();
+                  
+                  Alert alert = new Alert(Alert.AlertType.ERROR);
+                  alert.setTitle("Error");
+                  alert.setHeaderText(null);
+                  alert.setContentText("Container is Selected but batches is Empty");
+                  alert.showAndWait();
+               });
+            } else if (cbContainer.isSelected() && selectedSchool.size() != totalBatchCount) {
+               Platform.runLater(() -> {
+                  LoadingUtil.closeLoading();
+                  
+                  Alert alert = new Alert(Alert.AlertType.ERROR);
+                  alert.setTitle("Error");
+                  alert.setHeaderText(null);
+                  alert.setContentText("There is Unselected School");
+                  alert.showAndWait();
+               });
+            } else {
+               //executeGenerateDataWithLoading();
                
-               /*for (SchoolLot_Model schoolLotModel : schoolGradeLvlModel.getTableSchoolLotList()) {
-                  System.out.println("       -- " + schoolLotModel.getLotName().split(":")[0] + " <SPI: " + schoolLotModel.getSetPerItem() + ">" + " <CBM: " + schoolLotModel.getCbm() + ">");
-               }*/
+               WLPContext context = new WLPContext();
+               context.version = version;
+               context.mainStage = mainStage;
+               context.cbContainer = cbContainer;
+               context.inp_batchNumber = inp_batchNumber;
+               context.inp_containerNum = inp_containerNum;
+               context.spiGradeLevelList = spiGradeLevelList;
+               context.kgGradeLevelList = kgGradeLevelList;
+               context.selectedSchool = selectedSchool;
+               context.selectedBatchesMap = selectedBatchesMap;
+               
+               SessionData.getInstance().setSelectedLot(finalSelectedLot);
+               
+               new ProcessWLP(context, new ProcessWLP.WLPGenerationListener() {
+                  @Override
+                  public void onSuccess() {
+                     System.out.println("WLP process succeeded.");
+                     
+                     // Update school list in UI
+                     ObservableList<SchoolList_TableModel> updated = FXCollections.observableArrayList(tableDataList);
+                     updated.removeAll(selectedSchool);
+                     schoolListTableView.setItems(updated);  // ✅ No cast needed
+                     
+                     selectedSchool.clear();
+                     selectedSchoolIDs.clear();
+                     TotalCBM = 0; // Reset total CBM
+                     clearBatches();
+                     selectionBatch = 0;
+                     selectedSchoolBatchMap.clear();
+                     
+                     // Update UI
+                     total_volume.setText(String.valueOf(TotalCBM));
+                     
+                     // Refresh the first table (to reflect checkbox updates)
+                     schoolListTableView.refresh();
+                     
+                     // Refresh the second table (selected schools)
+                     populateTable(selectedSchoolTableView, selectedSchool, true);
+                  }
+                  
+                  @Override
+                  public void onFailure(Exception e) {
+                     System.err.println("WLP process failed: " + e.getMessage());
+                     e.printStackTrace();
+                     
+                     // Show user-friendly alert dialog
+                     Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setHeaderText("WLP Generation Failed");
+                        alert.setContentText("An error occurred while processing the WLP. Please try again.");
+                        alert.showAndWait();
+                     });
+                  }
+               });
+               
+               //new ProcessWLP(mainStage, cbContainer, inp_batchNumber, inp_containerNum, spiGradeLevelList, kgGradeLevelList, selectedSchool, selectedBatchesMap);
             }
+         } catch (Exception e) {
+            Platform.runLater(() -> {
+               LoadingUtil.closeLoading();
+               System.err.println("Error: " + e.getMessage());
+               e.printStackTrace();
+               
+               Alert alert = new Alert(Alert.AlertType.ERROR);
+               alert.setTitle("Error");
+               alert.setHeaderText(null);
+               alert.setContentText("An error occurred: " + e.getMessage());
+               alert.showAndWait();
+            });
          }
-         
-         /*for (Map.Entry<Integer, List<SchoolList_TableModel>> entry : selectedBatchesMap.entrySet()) {
-            System.out.println("Batch " + entry.getKey() + ":");
-            for (SchoolList_TableModel school : entry.getValue()) {
-               System.out.println("  School ID: " + school.getSchoolID() + ", Name: " + school.getSchoolName());
-            }
-         }*/
       });
+      
    }
    
+   private void refreshData() {
+      String message = "This will take longer than \nusual due to data validation. \nThank you for your patience.";
+      LoadingUtil.showLoading(mainStage, message);
+      
+      Task<List<SchoolList_TableModel>> tableTask = new Task<>() {
+         @Override
+         protected List<SchoolList_TableModel> call() {
+            tableDataList.clear();
+            selectedSchool.clear();
+            selectedSchoolIDs.clear();
+            TotalCBM = 0;
+            selectedBatchesMap.clear();
+            selectedSchoolBatchMap.clear();
+            selectionBatch = 0;
+            finalSelectedLot.clear();
+            sortedLotsArray = null;
+            finalAllocationData.clear();
+            
+            // Clear & fetch logic-side lists
+            Platform.runLater(() -> {
+               batchCbmGrid.getChildren().clear(); // UI-bound component
+               lotsDisp.setText("No Lot Selected");
+            });
+            
+            gatherSchoolData();    // Populate tableDataList
+            return tableDataList;
+         }
+         
+         @Override
+         protected void succeeded() {
+            Platform.runLater(() -> {
+               LoadingUtil.closeLoading();
+               
+               // Refresh UI-bound objects safely
+               total_volume.setText(String.valueOf(TotalCBM));
+               schoolListTableView.setItems(FXCollections.observableArrayList(tableDataList));
+               schoolListTableView.refresh();
+               selectedSchoolTableView.refresh();
+               
+               // Populate filter controls
+               populateChoiceBoxes();
+            });
+         }
+         
+         @Override
+         protected void failed() {
+            Platform.runLater(() -> {
+               LoadingUtil.closeLoading();
+               Throwable exception = getException();
+               exception.printStackTrace();
+               
+               Alert alert = new Alert(Alert.AlertType.ERROR);
+               alert.setTitle("Error");
+               alert.setHeaderText(null);
+               alert.setContentText("An error occurred while fetching help desk data: " + exception.getMessage());
+               alert.showAndWait();
+            });
+         }
+      };
+      
+      new Thread(tableTask).start();
+   }
+   
+   
    /// Show loading animation while gathering data
-   public void executeGettingDataWithLoading() {
+   private void executeGettingDataWithLoading() {
       String message = "This will take longer than \nusual due to data validation. \nThank you for your patience.";
 //      String message = "Fetching Data, Please Wait...";
       LoadingUtil.showLoading(mainStage, message);
@@ -179,11 +354,15 @@ public class MainController {
                if (finalSelectedLot == null || finalSelectedLot.isEmpty()) {
                   System.out.println("No Selected Lot");
                   System.out.println("Will use the unfiltered data");
-                  tableDataList = GetAllocation.getAllocation();
+//                  tableDataList = GetAllocation.getAllocation();
+                  tableDataList = finalAllocationData;
+                  schoolListTableView.refresh();
+                  
                } else {
                   System.out.println("Selected LOT: " + finalSelectedLot.toString());
                   System.out.println("Will use filtered data");
-                  tableDataList = GetAllocation.getSpecific_Allocation(finalSelectedLot, spiGradeLevelList, cbmGradeLevelList);
+                  //tableDataList = GetAllocation.getSpecific_Allocation(finalSelectedLot, spiGradeLevelList, cbmGradeLevelList);
+                  tableDataList = getSpecificLot();
                }
             }
             
@@ -221,6 +400,137 @@ public class MainController {
       new Thread(tableTask).start();
    }
    
+   private List<SchoolList_TableModel> getSpecificLot() {
+      List<SchoolList_TableModel> sortedData = new ArrayList<>();
+      
+      for (SchoolList_TableModel schoolModel : finalAllocationData) {
+         
+         int schoolId = schoolModel.getSchoolID();
+         
+         List<String> availableLots = new ArrayList<>();
+         
+         GeneratedSchoolModel generatedMatch = generatedSchoolList.stream()
+                 .filter(g -> g.getSchoolId() == schoolId)
+                 .findFirst()
+                 .orElse(null);
+         
+         if (generatedMatch != null) {
+            availableLots = generatedMatch.getLotsValueList().stream()
+                    .filter(lot -> lot.getValue() == null)  // Only keep lots where value is null
+                    .map(LotsModel::getLotCol)  // Extract only the lot column (e.g., "6", "7")
+                    .toList();
+         }
+         
+         
+         double totalCBM = 0;
+         
+         List<SchoolGradeLevel_Model> filteredGradeLvl = new ArrayList<>();
+         for (SchoolGradeLevel_Model gradeLevelModel : schoolModel.getTableSchoolGradeLevelList()) {
+            
+            List<SchoolLot_Model> filteredLots = new ArrayList<>();
+            for (SchoolLot_Model lotModel : gradeLevelModel.getTableSchoolLotList()) {
+               String lotNum = lotModel.getLotName().split(":")[0].replace("LOT", "").trim();
+               
+               if (finalSelectedLot.contains(lotNum) && availableLots.contains(lotNum)) {
+                  
+                  totalCBM += lotModel.getCbm();
+                  filteredLots.add(lotModel);
+               }
+            }
+            
+            if (!filteredLots.isEmpty()) {
+               filteredGradeLvl.add(new SchoolGradeLevel_Model(gradeLevelModel.getGradeLevel(), filteredLots));
+            }
+         }
+         
+         if (!filteredGradeLvl.isEmpty()) {
+            sortedData.add(new SchoolList_TableModel(
+                    schoolModel.getRegion(),
+                    schoolModel.getDivision(),
+                    schoolModel.getSchoolID(),
+                    schoolModel.getSchoolName(),
+                    String.join(", ", schoolModel.getGradeLevels()),
+                    totalCBM,
+                    filteredGradeLvl
+            ));
+         }
+      }
+      
+      return sortedData;
+   }
+   
+   private void inputBatch_ContainerSetup() {
+      // Batch number
+      try {
+         // Adjust the path depending on where res/ is located.
+         File file = new File("res/batchNum");
+         if (file.exists()) {
+            String batchNum = Files.readString(file.toPath()).trim();
+            
+            // Update JavaFX TextField on the UI thread
+            Platform.runLater(() -> inp_batchNumber.setText(batchNum));
+         } else {
+            System.err.println("batchNum file not found.");
+         }
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      
+      // Container number
+      try {
+         // Adjust the path depending on where res/ is located.
+         File file = new File("res/containerNum");
+         if (file.exists()) {
+            String containerNum = Files.readString(file.toPath()).trim();
+            
+            // Update JavaFX TextField on the UI thread
+            Platform.runLater(() -> inp_containerNum.setText(containerNum));
+         } else {
+            System.err.println("containerNum file not found.");
+         }
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+   }
+   
+   /// Show loading animation while generating data
+   /*private void executeGenerateDataWithLoading() {
+      String message = "Generating data, please wait...";
+      LoadingUtil.showLoading(mainStage, message);
+      
+      Task<Void> generateTask = new Task<>() {
+         @Override
+         protected Void call() {
+            // Perform the generation process
+            new ProcessWLP(mainStage, cbContainer, inp_containerNum, spiGradeLevelList, kgGradeLevelList, selectedSchool, selectedBatchesMap);
+            return null;
+         }
+         
+         @Override
+         protected void succeeded() {
+            LoadingUtil.closeLoading();
+         }
+         
+         @Override
+         protected void failed() {
+            Platform.runLater(() -> {
+               LoadingUtil.closeLoading();
+               Throwable exception = getException();
+               System.err.println("Error: " + exception.getMessage());
+               exception.printStackTrace();
+               
+               Alert alert = new Alert(Alert.AlertType.ERROR);
+               alert.setTitle("Error");
+               alert.setHeaderText(null);
+               alert.setContentText("An error occurred during generation: " + exception.getMessage());
+               alert.showAndWait();
+            });
+         }
+      };
+      
+      new Thread(generateTask).start();
+   }*/
+   
    /// Update the UI for latest Data
    private void updateUI() {
       // Class for controlling the UI
@@ -248,10 +558,16 @@ public class MainController {
       // Store the Set Per Item data
       spiGradeLevelList = new ReadSPI().spiGradeLevelList;
       cbmGradeLevelList = new ReadCBM().cbmGradeLevelList;
+      kgGradeLevelList = new ReadKG().kgGradeLevelList;
       
       // Collect lots from the database
-      tableDataList = GetAllocation.getAllocation();
+      tableDataList = GetAllocation.getAllocation(spiGradeLevelList, cbmGradeLevelList);
       populateChoiceBoxes();
+      
+      finalAllocationData = tableDataList;
+      
+//      deliveredSchoolList = GetAllocation.getDeliveredSchool();
+      generatedSchoolList = GetAllocation.getGeneratedSchool(GetAllocation.getDeliveredSchool());
       
       Set<String> gatheredLots = GetAllocation.gatheredLots;
       
@@ -263,6 +579,15 @@ public class MainController {
       
       // Store sorted lots in an array for reuse
       sortedLotsArray = sortedLots.toArray(new String[0]);
+      
+      /*List<String> lots = List.of(sortedLotsArray);
+      
+      List<String> numericLots = lots.stream()
+              .map(s -> s.replaceAll("\\D+", ""))       // remove non-digits
+              .filter(s -> !s.isEmpty())                // remove empty results
+              .collect(Collectors.toList());
+      */
+//      finalAllocationData = GetAllocation.getSpecific_Allocation(numericLots, spiGradeLevelList, cbmGradeLevelList);
       
       /// Testing for school Allocation
       /*for (SchoolList_TableModel schoolModel : schoolList) {
@@ -318,6 +643,9 @@ public class MainController {
          System.out.println();
       }*/
       
+      /// Test for Gathered Lots
+//      for ()
+      
       /// Test for SPI
       /*for (SPIGradeLevel spiGradeLevel : spiGradeLevelList) {
          System.out.println("Grade Level: " + spiGradeLevel.getGradeLevel());
@@ -343,6 +671,17 @@ public class MainController {
          }
          
          System.out.println(); // Add space for better separation between grade levels
+      }*/
+      
+      /// Test for KG
+      /*for (KGGradeLevel kgGradeLevel : kgGradeLevelList) {
+         System.out.println(kgGradeLevel.getGradeLvlName());
+         for (KGLot kgLot : kgGradeLevel.getLotList()) {
+            System.out.println("  ->"+kgLot.getLotName());
+            for (KGItem kgItem : kgLot.getItemList()) {
+               System.out.println("    ->" + kgItem.getItemName() + " : " + kgItem.getKg());
+            }
+         }
       }*/
    }
    
@@ -581,6 +920,7 @@ public class MainController {
       // Apply selection behavior only if this is the second table
       if (isSelectedTable) {
          tableView.setOnKeyPressed(event -> {
+            // if esc key pressed clear the batches
             if (cbContainer.isSelected() && event.getCode() == KeyCode.ESCAPE) {
                // Clear selection and batch data
                clearBatches();
@@ -588,7 +928,6 @@ public class MainController {
                tableView.getSelectionModel().clearSelection();
                selectedSchoolBatchMap.clear();
                tableView.refresh(); // Refresh the table to remove highlighting
-               
             }
          });
          
@@ -642,6 +981,10 @@ public class MainController {
       }
    }
    
+   
+   
+   
+   
    /// Method to configure a checkbox column
    private void setupCheckboxColumn(TableColumn<SchoolList_TableModel, Boolean> column) {
       column.setCellValueFactory(cellData -> cellData.getValue().selectProperty());
@@ -663,7 +1006,10 @@ public class MainController {
             if (empty || item == null) {
                setGraphic(null);
             } else {
-               checkBox.setSelected(item);
+               SchoolList_TableModel currentItem = getTableView().getItems().get(getIndex());
+               boolean isSelected = selectedSchoolIDs.contains(currentItem.getSchoolID());
+               checkBox.setSelected(isSelected);  // Auto check the box if schoolID is selected
+               
                checkBox.setDisable(finalSelectedLot == null);
                setGraphic(checkBox);
             }
@@ -725,6 +1071,9 @@ public class MainController {
       selectedSchool.clear();
       selectedSchoolIDs.clear();
       TotalCBM = 0; // Reset total CBM
+      clearBatches();
+      selectionBatch = 0;
+      selectedSchoolBatchMap.clear();
       
       // Update UI
       total_volume.setText(String.valueOf(TotalCBM));
@@ -741,13 +1090,10 @@ public class MainController {
       if (isSelected) {
          selectedSchoolIDs.add(tableList.getSchoolID());
          TotalCBM += tableList.getCbm();
-         
          selectedSchool.add(tableList);
-         
       } else {
          selectedSchoolIDs.remove(tableList.getSchoolID());
          TotalCBM -= tableList.getCbm();
-         
          selectedSchool.remove(tableList);
          
          // Check if no schools remain selected
@@ -758,7 +1104,6 @@ public class MainController {
       
       // Format TotalCBM to two decimal places and update the text
       total_volume.setText(String.valueOf(Math.round(TotalCBM * 100.0) / 100.0));
-//      populateSecondTable(selectedSchool);
       populateTable(selectedSchoolTableView, selectedSchool, true); // Second Table
    }
    
@@ -871,8 +1216,6 @@ public class MainController {
       selectionColors.add(newColor);
       usedColors.add(newColor);
    }
-   
-   
    
    /// Listener for lot selections
    public interface LotsSetupCallback {
